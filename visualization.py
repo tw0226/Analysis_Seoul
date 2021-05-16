@@ -5,6 +5,7 @@ import json
 import numpy
 from dbfread import DBF
 import csv
+import webbrowser
 
 category = "A0,A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,A16,A17,A18,A19,A20,A21,A22,A23,A24,A25,A26,A27,A28,A29,A30"
 category = list(map(str, category.split(',')))
@@ -31,28 +32,32 @@ def read_csv(filename):
     # df = df.rename(columns=category, inplace=True)
     # print([category[x] for x in df.columns])
     df.columns = [category[x] for x in df.columns]
-    print(df)
+    df['시'] = df['법정동명'].str.split(' ').str[0]
+    df['구'] = df['법정동명'].str.split(' ').str[1]
+    df['동'] = df['법정동명'].str.split(' ').str[2]
+    # print(df.loc[:, ['법정동명', '지번']].head())
+    print(df.loc[:, ['시', '구', '동', '지번']][10000:10100])
     return df
 
 
 if __name__=="__main__":
     df = read_csv('./csv_data/광진구_20210114.csv')
-    geo_json = 'https://raw.githubusercontent.com/southkorea/seoul-maps/master/kostat/2013/json/seoul_municipalities_geo_simple.json'\
-
+    # geo_json = 'https://raw.githubusercontent.com/southkorea/southkorea-maps/master/kostat/2018/json/skorea-municipalities-2018-geo.json'
+    dong_geo_json = 'https://raw.githubusercontent.com/southkorea/southkorea-maps/master/kostat/2018/json/skorea-submunicipalities-2018-geo.json'
     m = folium.Map(location=[37.562225, 126.978555], tiles="OpenStreetMap", zoom_start=11)
     folium.Choropleth(
-        geo_data=geo_json,
+        geo_data=dong_geo_json,
         name='choropleth',
         data=df,
-        columns=['법정동명', '건물연령'],
+        columns=['구', '건물연령'],
         key_on='feature.properties.name',
         fill_color='YlGn',
         fill_opacity=0.7,
-        line_opacity=0.2,
+        line_opacity=0.3,
         legend_name='건물연령',
     ).add_to(m)
-    folium.LayerControl().add_to(m)
+    # folium.LayerControl().add_to(m)
     m.save('test.html')
-    m
+    webbrowser.open('test.html')
     # filename = 'C:/Users/김태우/Downloads/AL_11215_D196_20210114/AL_11215_D196_20210114.dbf'
     # dbf_to_csv(filename)
